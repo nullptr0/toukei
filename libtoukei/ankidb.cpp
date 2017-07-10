@@ -5,7 +5,10 @@ Ankidb::Ankidb(const std::string &filename){
 	char *err = nullptr;
 	int ret;
 
-	ret = sqlite3_open(filename.c_str(), &db);
+	ret = sqlite3_open_v2(filename.c_str(),
+			&db,
+			SQLITE_OPEN_READONLY,
+			NULL);
 
 	if(ret){
 		std::cerr << "Can't open db: "
@@ -130,7 +133,9 @@ std::vector<StatPoint> Ankidb::get_review_stats(unsigned chunk,
 
 		if(fill && time - last_time > 1){
 			for(int i = last_time + 1; i < time; i++){
-				result.push_back({i});
+				StatPoint p = StatPoint();
+				p.time = i;
+				result.push_back(p);
 			}
 		}
 
