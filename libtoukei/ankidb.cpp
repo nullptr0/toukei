@@ -81,6 +81,67 @@ std::vector<Deck> Ankidb::getDecks(){
 		decks.emplace_back(name, id);
 	}
 
+	json_decref(root);
+
 	sqlite3_finalize(s);
 	return decks;
+}
+
+std::vector<StatPoint> Ankidb::get_review_stats(unsigned chunk,
+		const std::string &lmt,
+		bool fill)
+{
+	std::vector<StatPoint> result;
+
+	int ret;
+
+	sqlite3_stmt *s;
+
+	std::string query = "SELECT (id / 1000 - 7200) / "
+		+ std::to_string(chunk) + " AS day, "
+		"SUM(case when type = 0 then 1 else 0 end) AS lrn, "
+		"SUM(case when type = 1 and lastIvl < 21 then 1 else 0 end) AS yng, "
+		"SUM(case when type = 1 and lastIvl >= 21 then 1 else 0 end) AS mtr, "
+		"SUM(case when type = 2 then 1 else 0 end) AS lapse, "
+		"SUM(case when type = 3 then 1 else 0 end) AS cram "
+		"FROM revlog "
+		"WHERE " + lmt + " "
+		"GROUP by day "
+		"ORDER by day ";
+
+
+	ret = sqlite3_prepare_v2(db,
+			query.c_str(),
+			-1,
+			&s,
+			NULL);
+
+	int last_time = 0;
+
+	while((ret = sqlite3_step(s)) == SQLITE_ROW){
+		int time = sqlite3_column_int(s, 0);
+
+		if(fill && last_time != 0 && time - last_time > 1){
+			StatPoint p = {};
+			p.time = last_time + 1;
+			for(int i = 0; i < time - last_time - 1; i++){
+				result.push_back(p);
+				p.time++;
+			}
+		}
+
+		StatPoint p = {};
+		p.time = time;
+		p.learn = sqlite3_column_int(s, 1);
+		p.young = sqlite3_column_int(s, 2);
+		p.mature = sqlite3_column_int(s, 3);
+		p.lapse = sqlite3_column_int(s, 4);
+		p.cram = sqlite3_column_int(s, 5);
+		result.push_back(p);
+		last_time = time;
+	}
+
+	sqlite3_finalize(s);
+		
+	return result;
 }
