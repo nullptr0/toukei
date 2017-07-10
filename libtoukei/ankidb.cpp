@@ -116,17 +116,21 @@ std::vector<StatPoint> Ankidb::get_review_stats(unsigned chunk,
 			&s,
 			NULL);
 
-	int last_time = 0;
+	ret = sqlite3_step(s);
+	if(ret != SQLITE_ROW){
+		std::cerr << "SQL error: " << sqlite3_errmsg(db) << std::endl;
+		sqlite3_finalize(s);
+		return result;
+	}
 
-	while((ret = sqlite3_step(s)) == SQLITE_ROW){
+	int last_time = sqlite3_column_int(s, 0);
+
+	do{
 		int time = sqlite3_column_int(s, 0);
 
-		if(fill && last_time != 0 && time - last_time > 1){
-			StatPoint p = {};
-			p.time = last_time + 1;
-			for(int i = 0; i < time - last_time - 1; i++){
-				result.push_back(p);
-				p.time++;
+		if(fill && time - last_time > 1){
+			for(int i = last_time + 1; i < time; i++){
+				result.push_back({i});
 			}
 		}
 
@@ -139,7 +143,7 @@ std::vector<StatPoint> Ankidb::get_review_stats(unsigned chunk,
 		p.cram = sqlite3_column_int(s, 5);
 		result.push_back(p);
 		last_time = time;
-	}
+	} while((ret = sqlite3_step(s)) == SQLITE_ROW);
 
 	sqlite3_finalize(s);
 		
