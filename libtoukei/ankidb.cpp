@@ -81,7 +81,7 @@ std::vector<Deck> Ankidb::getDecks(){
 
 		std::string name = json_string_value(j_name);
 		unsigned long long id = json_integer_value(j_id);
-		decks.emplace_back(name, id);
+		decks.emplace_back(*this, name, id);
 	}
 
 	json_decref(root);

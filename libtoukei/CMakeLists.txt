@@ -1,6 +1,7 @@
-set(SOURCES ankidb.cpp)
+set(SOURCES ankidb.cpp deck.cpp)
 
 add_library(toukei ${SOURCES})
+set_property(TARGET toukei PROPERTY POSITION_INDEPENDET_CODE ON)
 
 find_library(JSON_LIBRARY jansson)
 

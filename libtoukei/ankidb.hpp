@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <sqlite3.h>
-
 #include <vector>
 
 #include "deck.hpp"

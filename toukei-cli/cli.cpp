@@ -9,12 +9,14 @@ int main(){
 
 	std::cout << "Decks: " << std::endl;
 
-	for(Deck d: db.getDecks()){
-		std::cout << d.getID() << ": " << d.getName() << ": ";
-		std::cout << db.get_deck_card_count(d.getID()) << " cards" << std::endl;
+	std::vector<Deck> decks = db.getDecks();
+
+	for(Deck d: decks){
+		std::cout << d.get_ID() << ": " << d.get_name() << ": ";
+		std::cout << d.get_card_count() << " cards" << std::endl;
 	}
 
-	std::vector<StatPoint> stats = db.get_review_stats(24*60*60);
+	std::vector<StatPoint> stats = decks[1].get_review_stats(24*60*60);
 
 	for(const StatPoint &p: stats){
 		std::cout << p.time << " ";
